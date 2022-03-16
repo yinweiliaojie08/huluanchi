@@ -1,0 +1,37 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    app: mysqldump-cronjob
+  name: mysqldump-cronjob
+  namespace: nbbp
+spec:
+  schedule: "02 02 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/hostname: k8s-node04
+          restartPolicy: Never
+          containers:
+          - image: registry.hrfax.net:5000/zhangjt/mysql:8.0.18
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "mysqldump -h mysql-svc -P3306 -uroot -phrfax123  --all-databases  --hex-blob --set-gtid-purged=OFF |gzip > /tmp/mysqldump-cronjob/fullbackup`date +%Y%m%d%H%M`.tar.gz"
+            name: mysqldump-cronjob
+            volumeMounts:
+              - mountPath: /tmp/mysqldump-cronjob
+                name: mysqldump-cronjob
+            resources:
+              limits:
+                cpu: "1"
+                memory: 1024Mi
+              requests:
+                cpu: "1"
+                memory: 512Mi
+          volumes:
+            - hostPath:
+                path: /app/hrfax-data-backup/mysqldump-data
+              name: mysqldump-cronjob
