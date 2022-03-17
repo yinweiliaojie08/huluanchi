@@ -6,8 +6,8 @@ data:
      "default_policy":"deny",
      "enable_token_persistence":true,
      "tokens":{
-       "master":"8dc1eb67-1f5f-4e10-ad9d-5e58b047647c",
-       "agent":"8dc1eb67-1f5f-4e10-ad9d-5e58b047647c"
+       "master":"8dc1eb67-x",
+       "agent":"8dc1eb67-x"
                     }
             },
      "connect": {
