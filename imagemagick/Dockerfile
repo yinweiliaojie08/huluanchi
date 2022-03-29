@@ -19,7 +19,7 @@ RUN yum install -y epel-release \
     && yum install -y fftw fftw-devel fftw-devel bzip2 bzip2-devel freetype-devel libjpeg-devel libpng-devel libtiff-devel giflib-devel \
     zlib-devel ghostscript-devel djvulibre-devel libwmf-devel jasper-devel  libX11-devel libXext-devel libXt-devel lcms-devel libxml2-devel \
     librsvg2-devel OpenEXR-devel openjpeg openjpeg-devel  openjpeg2 openjpeg2-devel openjpeg2-libs  gcc gcc-c++  make cmake automake  libtool \
-    libtool-ltdl-devel lcms2  lcms2-devel LibRaw LibRaw-devel net-tools wget \
+    libtool-ltdl-devel lcms2  lcms2-devel LibRaw LibRaw-devel net-tools wget ghostscript \
     && mkdir -pv  /opt/make \ 
     && cd /opt/make \
     # 下载ImageMagick和node二进制文件
