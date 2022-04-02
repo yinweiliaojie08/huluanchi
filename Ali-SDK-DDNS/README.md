@@ -2,3 +2,4 @@
 // pip3 install -U pip  #升级pip  
 // pip3 install setuptools_rust  
 // pip3 install -r requirements.txt  
+// python3 ddns.py  
