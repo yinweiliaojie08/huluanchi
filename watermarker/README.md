@@ -40,7 +40,7 @@ optional arguments:
   --quality QUALITY     quality of output images, default is 90
 ```
 
-# 效果
+# 使用
 
 `python3 marker.py -f ./input/test.webp -m  添加水印`
 
