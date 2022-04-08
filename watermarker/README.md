@@ -7,7 +7,7 @@
 
 # usage
 
-需要 PIL 库 
+需要 PIL 库   
 `python3 -m pip install --upgrade pip`  
 `python3 -m pip install --upgrade Pillow`
 
