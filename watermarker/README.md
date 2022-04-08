@@ -7,10 +7,9 @@
 
 # usage
 
-需要 PIL 库 `
-python3 -m pip install --upgrade pip  
-python3 -m pip install --upgrade Pillow  
-`
+需要 PIL 库 
+`python3 -m pip install --upgrade pip`
+`python3 -m pip install --upgrade Pillow`
 
 ```
 usage: marker.py [-h] [-f FILE] [-m MARK] [-o OUT] [-c COLOR] [-s SPACE] [-a ANGLE] [--font-family FONT_FAMILY] [--font-height-crop FONT_HEIGHT_CROP] [--size SIZE]
