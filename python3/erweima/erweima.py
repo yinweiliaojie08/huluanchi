@@ -1,5 +1,5 @@
 from MyQR import myqr
-myqr.run(words="https://www.baidu.com",
+myqr.run(words="https://www.devops724.cn",
          version=6,
          picture="1.png",
          colorized=True,
