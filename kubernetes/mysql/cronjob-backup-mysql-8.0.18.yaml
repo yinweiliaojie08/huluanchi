@@ -15,11 +15,11 @@ spec:
             kubernetes.io/hostname: k8s-node04
           restartPolicy: Never
           containers:
-          - image: registry.hrfax.net:5000/zhangjt/mysql:8.0.18
+          - image: registry.shinemo.net:5000/zhangjt/mysql:8.0.18
             command:
             - "/bin/sh"
             - "-c"
-            - "mysqldump -h mysql-svc -P3306 -uroot -phrfax123  --all-databases  --hex-blob --set-gtid-purged=OFF |gzip > /tmp/mysqldump-cronjob/fullbackup`date +%Y%m%d%H%M`.tar.gz"
+            - "mysqldump -h mysql-svc -P3306 -uroot -pshinemo123  --all-databases  --hex-blob --set-gtid-purged=OFF |gzip > /tmp/mysqldump-cronjob/fullbackup`date +%Y%m%d%H%M`.tar.gz"
             name: mysqldump-cronjob
             volumeMounts:
               - mountPath: /tmp/mysqldump-cronjob
@@ -33,5 +33,5 @@ spec:
                 memory: 512Mi
           volumes:
             - hostPath:
-                path: /app/hrfax-data-backup/mysqldump-data
+                path: /app/shinemo-data-backup/mysqldump-data
               name: mysqldump-cronjob

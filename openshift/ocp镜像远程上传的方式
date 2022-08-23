@@ -46,7 +46,7 @@ sudo systemctl restart docker
 
 4. 创建测试project和docker pull secret
 在ocp创建测试项目或者直接将镜像push到openshift项目。
-oc new-project hrfax-facesign
+oc new-project shinemo-facesign
 
 # oc secrets new-dockercfg private-registry --docker-server=docker-registry-default.zhangjt.shinemo.net  --docker-username=management-admin --docker-password=${registry-token} --docker-email=abc@example.com
 将docker pull secret添加到serviceaccount：default
@@ -76,14 +76,14 @@ docker login -u admin -p $(oc whoami -t) docker-registry-default.zhangjt.shinemo
 重新tag镜像并推送
 
 docker pull busybox
-docker tag  busybox docker-registry-default.zhangjt.shinemo.net/hrfax-facesign/busybox
-docker push docker-registry-default.zhangjt.shinemo.net/hrfax-facesign/busybox
+docker tag  busybox docker-registry-default.zhangjt.shinemo.net/shinemo-facesign/busybox
+docker push docker-registry-default.zhangjt.shinemo.net/shinemo-facesign/busybox
 
 6. 在集群中完成上传镜像的部署
 在镜像push成功之后会在project下自动创建is
-oc get is -n hrfax-facesign
+oc get is -n shinemo-facesign
 NAME      DOCKER REPO                                               TAGS      UPDATED
-busybox   docker-registry.default.svc:5000/hrfax-facesign/busybox   latest    About a minute ago
+busybox   docker-registry.default.svc:5000/shinemo-facesign/busybox   latest    About a minute ago
 
 使用如下文件发布镜像
 

@@ -114,11 +114,11 @@ spec:
       containers:
         - env:
             - name: MYSQL_ROOT_PASSWORD
-              value: hrfax123
+              value: shinemo123
             - name: MYSQL_USER
               value: user
             - name: MYSQL_PASSWORD
-              value: hrfax123
+              value: shinemo123
           image: mysql:8.0.26
           name: mysql-container
           ports:

@@ -79,7 +79,7 @@ spec:
            -domain=cluster.local \
            -retry-join=consul-0.consul.$(NAMESPACE).svc.cluster.local \
            -disable-host-node-id \
-           -datacenter=hrfax \
+           -datacenter=shinemo \
            -enable-script-checks=true \
            -config-file=/consul/config/Acl.json \
         env:
@@ -93,7 +93,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: registry.hrfax.net:5000/zhangjt/consul:1.9.7
+        image: registry.shinemo.net:5000/zhangjt/consul:1.9.7
         imagePullPolicy: Always
         name: consul
         ports:
