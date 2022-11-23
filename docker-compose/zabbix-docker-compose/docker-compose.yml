@@ -1,0 +1,74 @@
+version: '3'
+services:
+  zabbix-mysql:
+    image: mysql:5.7
+    extra_hosts:
+    - "zabbix-server:127.0.0.1"
+    - "zabbix-mysql:127.0.0.1"
+    - "Zabbix server:127.0.0.1"
+    network_mode: host
+    volumes:
+        - ./zabbix/mysql/mysqldata:/var/lib/mysql
+    environment:
+        - MYSQL_USER=zabbix
+        - MYSQL_PASSWORD=zabbix
+        - MYSQL_ROOT_PASSWORD=123321
+        - character-set-server=utf8
+        - collation-server=utf8_bin
+    restart: always
+  zabbix-server:
+    image:  registry.cn-hangzhou.aliyuncs.com/zhangjt_shinemo/shinemo:zabbix-server-mysql-centos-5.4.9-sudoer
+    restart: always
+    network_mode: host
+    extra_hosts:
+    - "zabbix-server:127.0.0.1"
+    - "zabbix-mysql:127.0.0.1"
+    - "Zabbix server:127.0.0.1"
+    environment:
+      - DB_SERVER_HOST=127.0.0.1
+      - MYSQL_USER=zabbix
+      - MYSQL_DATABASE=zabbix
+      - MYSQL_PASSWORD=zabbix
+      - DB_SERVER_ROOT_USER=root
+      - DB_SERVER_ROOT_PASS=123321
+      - TZ＝'Asia/Shanghai'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./zabbix/zabbixconfig/zabbix_server.conf:/etc/zabbix/zabbix_server.conf
+      - ./zabbix/alertscripts:/usr/lib/zabbix/alertscripts
+      - ./zabbix/externalscripts:/usr/lib/zabbix/externalscripts
+      - ./zabbix/modules:/var/lib/zabbix/modules
+      - ./zabbix/enc:/var/lib/zabbix/enc
+      - ./zabbix/snmptraps:/var/lib/zabbix/snmptraps
+      - ./zabbix/mibs:/var/lib/zabbix/mibs
+    depends_on:
+      - zabbix-mysql
+  zabbix-web-nginx:
+    image:  registry.cn-hangzhou.aliyuncs.com/zhangjt_shinemo/shinemo:zabbix-web-nginx-mysql-5.4.9
+    restart: always
+    extra_hosts:
+    - "zabbix-server:127.0.0.1"
+    - "zabbix-mysql:127.0.0.1"
+    - "Zabbix server:127.0.0.1"
+    network_mode: host
+    environment:
+      - DB_SERVER_HOST=127.0.0.1
+      - MYSQL_DATABASE=zabbix
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=zabbix
+      - MYSQL_ROOT_PASSWORD=123321
+      - ZBX_SERVER_HOST=zabbix-server
+      - PHP_TZ = 'Asia/Shanghai'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./zabbix/php/php.ini:/etc/php7/php.ini
+      - ./zabbix/php/zabbix.conf:/etc/php7/php-fpm.d/zabbix.conf
+
+#  nginx-proxy:
+#    image:  registry.cn-hangzhou.aliyuncs.com/zhangjt_shinemo/shinemo:tengine-2.3.2
+#    restart: always
+#    network_mode: host
+#    volumes:
+#      - ./zabbix/nginx-proxy/conf:/home/admin/nginx/conf
