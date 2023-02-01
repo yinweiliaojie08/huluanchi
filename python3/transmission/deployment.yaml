@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oom-sims
+  namespace: default
+  labels:
+    app: oom-sims
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oom-sims
+  template:
+    metadata:
+      labels:
+        app: oom-sims
+    spec:
+      volumes:
+        - name: heap-dumps
+          emptyDir: {}
+      containers:
+        - name: oom-sims-container
+          image: harbor.fybanks.com/zjt/oom-sims:1.0
+          command:
+          - java
+          - -Xms128m
+          - -Xmx512m
+          - -XX:+HeapDumpOnOutOfMemoryError
+          - -XX:HeapDumpPath=/data
+          - -jar
+          - /app/oom-sims-1.0-SNAPSHOT.jar
+          args: ["800"]
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "1"
+            limits:
+              memory: "1024Mi"
+              cpu: "1"
+          volumeMounts:
+          - name: heap-dumps
+            mountPath: /data
+        - name: dumper
+          image: harbor.fybanks.com/zjt/python3:transmission-v2
+          env:
+          - name: scp_host
+            value: "192.168.20.183"
+          - name: scp_port
+            value: "22"
+          - name: scp_user
+            value: "root"
+          - name: scp_password  
+            value: "123456"
+          - name: scp_remote_dir 
+            value: "/data/download"
+          - name: dump_dir
+            value: "/data/"
+          - name: dump_file
+            value: "java_pid1.hprof"
+          volumeMounts:
+          - name: heap-dumps
+            mountPath: /data
