@@ -1,4 +1,4 @@
-mport requests
+import requests
 import time
 from tqdm import tqdm
 from bs4 import BeautifulSoup
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         chapter_name = chapter.string
         url = server + chapter.get('href')
         content = get_content(url)
-        with open(book_name, 'a', encoding='GBK') as f:
+        with open(book_name, 'a', encoding='utf-8') as f:
             f.write(chapter_name)
             f.write('\n')
             f.write('\n'.join(content))
