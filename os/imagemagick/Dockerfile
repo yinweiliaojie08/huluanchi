@@ -20,7 +20,7 @@ RUN yum install -y epel-release \
     libtool-ltdl-devel lcms2  lcms2-devel LibRaw LibRaw-devel net-tools wget ghostscript \
     && mkdir -pv  /opt/make \ 
     && cd /opt/make \
-    # 下载ImageMagick和node二进制文件
+    # 下载ImageMagick
     && echo $'https://nih.at/libzip/libzip-1.2.0.tar.gz\n\
     https://github.com/facebook/zstd/releases/download/v1.5.0/zstd-1.5.0.tar.gz\n\
     https://github.com/webmproject/libwebp/archive/refs/tags/v1.2.1.tar.gz\n\
