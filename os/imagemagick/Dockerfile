@@ -2,13 +2,11 @@ FROM centos:7
 MAINTAINER zhangjt <zhangjt@xxx.com>
 
 ENV TZ Asia/Shanghai
-## pkgconfig dir env
+
 ENV PKG_CONFIG_PATH $PKG_CONFIG_PATH:/usr/lib64/pkgconfig:/usr/local/lib/pkgconfig
 ENV export PKG_CONFIG_PATH
-## dynamic load path
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/lib:/usr/lib64:/usr/local/lib:/usr/local/lib64
 ENV export LD_LIBRARY_PATH
-ENV PATH /usr/local/node-v14.16.0-linux-x64/bin:/usr/local/yarn-v1.22.5/bin:$PATH
 
 RUN yum install -y epel-release \
     && mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup \
@@ -29,14 +27,12 @@ RUN yum install -y epel-release \
     https://download.imagemagick.org/ImageMagick/download/delegates/liblqr-1-0.4.2.tar.bz2\n\
     https://www.nasm.us/pub/nasm/releasebuilds/2.13.03/nasm-2.13.03.tar.gz\n\
     https://bitbucket.org/multicoreware/x265_git/downloads/x265_3.3.tar.gz\n\
-    https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/l/libaom-3.1.1-1.el7.x86_64.rpm\n\
-    https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/l/libaom-devel-3.1.1-1.el7.x86_64.rpm\n\
+    https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/l/libaom-3.1.1-1.el7.x86_64.rpm\n\
+    https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/l/libaom-devel-3.1.1-1.el7.x86_64.rpm\n\
     https://github.com/strukturag/libde265/releases/download/v1.0.8/libde265-1.0.8.tar.gz\n\
     https://github.com/strukturag/libheif/releases/download/v1.12.0/libheif-1.12.0.tar.gz\n\
-    https://download.imagemagick.org/ImageMagick/download/ImageMagick-7.1.0-29.tar.gz\n\
-    https://nodejs.org/dist/v14.16.0/node-v14.16.0-linux-x64.tar.gz\n\
-    https://yarnpkg.com/downloads/1.22.5/yarn-v1.22.5.tar.gz\n' > wget.txt \
-    && wget -e "https_proxy=http://192.168.0.159:7890" -i wget.txt --no-check-certificate \
+    https://download.imagemagick.org/archive/ImageMagick-7.1.1-12.tar.gz\n' > wget.txt \
+    && wget -e "https_proxy=http://192.168.10.191:7890" -i wget.txt --no-check-certificate \
     # install libzip
     && cd /opt/make && tar -zxvf libzip-1.2.0.tar.gz && cd libzip-1.2.0 && ./configure && make -j 4 && make install \
     # install zstd
@@ -55,10 +51,7 @@ RUN yum install -y epel-release \
     && cd /opt/make && tar -zxvf libde265-1.0.8.tar.gz && cd libde265-1.0.8 && ./autogen.sh && ./configure && make -j 4 && make install \
     && cd /opt/make && tar -zxvf libheif-1.12.0.tar.gz && cd libheif-1.12.0 && ./autogen.sh && ./configure && make -j 4 && make install \ 
     # install magick
-    && cd /opt/make && tar -zxvf ImageMagick-7.1.0-29.tar.gz && cd ImageMagick-7.1.0-29  && ./configure && make -j 4  && make install \
-    # 安装node 环境
-    && cd /opt/make && tar fx node-v14.16.0-linux-x64.tar.gz -C /usr/local \
-    && tar fx yarn-v1.22.5.tar.gz -C /usr/local \
+    && cd /opt/make && tar -zxvf ImageMagick-7.1.1-12.tar.gz && cd ImageMagick-7.1.1-12  && ./configure  && make -j 4  && make install \
     && ldconfig /usr/local/lib \
     && rm -rf /opt/make \
     && yum clean all \
