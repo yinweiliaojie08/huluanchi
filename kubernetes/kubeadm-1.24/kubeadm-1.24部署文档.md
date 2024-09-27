@@ -308,8 +308,8 @@ opt/cni/bin/bridge
 
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
 
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.shinemo.net:5000"]
-        endpoint = ["http://registry.shinemo.net:5000"]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.hrfax.net:5000"]
+        endpoint = ["http://registry.hrfax.net:5000"]
 
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
         endpoint = ["https://pkeh50sq.mirror.aliyuncs.com"]
@@ -317,10 +317,23 @@ opt/cni/bin/bridge
 
 
 配置 containerd 开机启动，并启动 containerd
+# 配置代理
+mkdir -p /etc/systemd/system/containerd.service.d
+touch /etc/systemd/system/containerd.service.d/http-proxy.conf
+tee /etc/systemd/system/containerd.service.d/http-proxy.conf << EOF
+[Service]
+Environment="HTTP_PROXY=http://192.168.10.191:7890"
+Environment="HTTPS_PROXY=http://192.168.10.191:7890"
+Environment="NO_PROXY=localhost,127.0.0.1,containerd"
+EOF
+systemctl daemon-reload
+systemctl restart containerd
 
 # systemctl enable containerd --now
+重新加载 br_netfilter
+# modprobe br_netfilter
+# bridge
 使用 crictl 测试一下，确保可以打印出版本信息并且没有错误信息输出:
-
 # crictl version
 Version:  0.1.0
 RuntimeName:  containerd
@@ -444,6 +457,7 @@ kubernetesVersion: v1.24.0
 imageRepository: registry.aliyuncs.com/google_containers
 networking:
   podSubnet: 10.244.0.0/16
+  serviceSubnet: 10.11.0.0/12
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
@@ -539,7 +553,7 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 Then you can join any number of worker nodes by running the following on each as root:
 
 kubeadm join 192.168.137.8:6443 --token m5ez5e.zk5m4q3mw2u57aaf \
-	--discovery-token-ca-cert-hash sha256:706bd94e2bf10d1030453ceb4091ed44318b333c7f909708bf99107fdd024807 
+        --discovery-token-ca-cert-hash sha256:706bd94e2bf10d1030453ceb4091ed44318b333c7f909708bf99107fdd024807
 
 上面记录了完成的初始化输出的内容，根据输出的内容基本上可以看出手动初始化安装一个 Kubernetes 集群所需要的关键步骤。 其中有以下关键内容：
 
@@ -554,112 +568,19 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 EOF
 # source  /root/.bashrc
 ```
-3.3、安装包管理器 helm 3
-Helm 是 Kubernetes 的包管理器，后续流程也将使用 Helm 安装 Kubernetes 的常用组件。 这里先在 master 节点 node1 上安装 helm。
+3.3、安装calico网络插件
 ```
-# wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-# tar -zxvf helm-v3.9.0-linux-amd64.tar.gz
-# mv linux-amd64/helm  /usr/local/bin/
-执行 helm list 确认没有错误输出。
+# wget https://raw.githubusercontent.com/yinweiliaojie08/huluanchi/refs/heads/main/kubernetes/calico/calico.yaml
+#  kubectl  apply -f calico.yaml
+
 ```
 
-3.4、部署 Pod Network 组件 Calico
-选择 calico 作为 k8s 的 Pod 网络组件，下面使用 helm 在 k8s 集群中安装 calico。下载 tigera-operator 的 helm chart:
+3.4 查看calicopod状态
 ```
-# wget https://github.com/projectcalico/calico/releases/download/v3.23.1/tigera-operator-v3.23.1.tgz
-```
-查看这个 chart 的中可定制的配置:
-```
-# helm show values tigera-operator-v3.23.1.tgz
-imagePullSecrets: {}
-
-installation:
-  enabled: true
-  kubernetesProvider: ""
-
-apiServer:
-  enabled: true
-
-certs:
-  node:
-    key:
-    cert:
-    commonName:
-  typha:
-    key:
-    cert:
-    commonName:
-    caBundle:
-
-resources: {}
-
-# Configuration for the tigera operator
-tigeraOperator:
-  image: tigera/operator
-  version: v1.27.1
-  registry: quay.io
-calicoctl:
-  image: docker.io/calico/ctl
-  tag: v3.23.1
-```
-可针对上面的配置进行定制,例如 calico 的镜像改成从私有库拉取。
-使用 helm 安装 calico：
-```
-# tar fx tigera-operator-v3.23.1.tgz
-# helm install calico tigera-operator-v3.23.1.tgz -n kube-system  --create-namespace -f tigera-operator/values.yaml
-```
-等待并确认所有 pod 处于 Running状态:
-```
-# kubectl get pod -n kube-system | grep tigera-operator
-tigera-operator-5fb55776df-wxbph   1/1     Running   0             5m10s
-
-# kubectl get pods -n calico-system
-NAME                                       READY   STATUS    RESTARTS   AGE
-calico-kube-controllers-68884f975d-5d7p9   1/1     Running   0          5m24s
-calico-node-twbdh                          1/1     Running   0          5m24s
-calico-typha-7b4bdd99c5-ssdn2              1/1     Running   0          5m24s
-```
-查看一下 calico 向 k8s 中添加的 api 资源:
-```
-# kubectl api-resources | grep calico
-bgpconfigurations                                                                 crd.projectcalico.org/v1               false        BGPConfiguration
-bgppeers                                                                          crd.projectcalico.org/v1               false        BGPPeer
-blockaffinities                                                                   crd.projectcalico.org/v1               false        BlockAffinity
-caliconodestatuses                                                                crd.projectcalico.org/v1               false        CalicoNodeStatus
-clusterinformations                                                               crd.projectcalico.org/v1               false        ClusterInformation
-felixconfigurations                                                               crd.projectcalico.org/v1               false        FelixConfiguration
-globalnetworkpolicies                                                             crd.projectcalico.org/v1               false        GlobalNetworkPolicy
-globalnetworksets                                                                 crd.projectcalico.org/v1               false        GlobalNetworkSet
-hostendpoints                                                                     crd.projectcalico.org/v1               false        HostEndpoint
-ipamblocks                                                                        crd.projectcalico.org/v1               false        IPAMBlock
-ipamconfigs                                                                       crd.projectcalico.org/v1               false        IPAMConfig
-ipamhandles                                                                       crd.projectcalico.org/v1               false        IPAMHandle
-ippools                                                                           crd.projectcalico.org/v1               false        IPPool
-ipreservations                                                                    crd.projectcalico.org/v1               false        IPReservation
-kubecontrollersconfigurations                                                     crd.projectcalico.org/v1               false        KubeControllersConfiguration
-networkpolicies                                                                   crd.projectcalico.org/v1               true         NetworkPolicy
-networksets                                                                       crd.projectcalico.org/v1               true         NetworkSet
-bgpconfigurations                 bgpconfig,bgpconfigs                            projectcalico.org/v3                   false        BGPConfiguration
-bgppeers                                                                          projectcalico.org/v3                   false        BGPPeer
-caliconodestatuses                caliconodestatus                                projectcalico.org/v3                   false        CalicoNodeStatus
-clusterinformations               clusterinfo                                     projectcalico.org/v3                   false        ClusterInformation
-felixconfigurations               felixconfig,felixconfigs                        projectcalico.org/v3                   false        FelixConfiguration
-globalnetworkpolicies             gnp,cgnp,calicoglobalnetworkpolicies            projectcalico.org/v3                   false        GlobalNetworkPolicy
-globalnetworksets                                                                 projectcalico.org/v3                   false        GlobalNetworkSet
-hostendpoints                     hep,heps                                        projectcalico.org/v3                   false        HostEndpoint
-ippools                                                                           projectcalico.org/v3                   false        IPPool
-ipreservations                                                                    projectcalico.org/v3                   false        IPReservation
-kubecontrollersconfigurations                                                     projectcalico.org/v3                   false        KubeControllersConfiguration
-networkpolicies                   cnp,caliconetworkpolicy,caliconetworkpolicies   projectcalico.org/v3                   true         NetworkPolicy
-networksets                       netsets                                         projectcalico.org/v3                   true         NetworkSet
-profiles                                                                          projectcalico.org/v3                   false        Profile
-```
-这些 api 资源是属于 calico 的，因此不建议使用 kubectl 来管理，推荐按照 calicoctl 来管理这些 api 资源。 将 calicoctl 安装为 kubectl 的插件:
-```
-# cd /usr/local/bin
-# curl -o calicoctl -O -L  "https://github.com/projectcalico/calicoctl/releases/download/v3.21.5/calicoctl-linux-amd64" 
-# chmod +x calicoctl
-# calicoctl -h
+# kubectl  get pods -n kube-system  |grep 'calico'
+calico-kube-controllers-8d555b59-57w7m   1/1     Running   0          15h
+calico-node-w55h4                        1/1     Running   0          15h
+calico-node-xnlbw                        1/1     Running   0          15h
 ```
 3.5、验证 k8s DNS 是否可用
 ```
@@ -671,7 +592,7 @@ If you don't see a command prompt, try pressing enter.
 nslookup kubernetes.default
 Server:    10.96.0.10
 Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
- 
+
 Name:      kubernetes.default
 Address 1: 10.96.0.1 kubernetes.default.svc.cluster.local
 ```
@@ -679,7 +600,7 @@ Address 1: 10.96.0.1 kubernetes.default.svc.cluster.local
 下面将 node2添加到 Kubernetes 集群中，在 node2上执行:
 ```
 # kubeadm join 192.168.137.8:6443 --token m5ez5e.zk5m4q3mw2u57aaf \
-	--discovery-token-ca-cert-hash sha256:706bd94e2bf10d1030453ceb4091ed44318b333c7f909708bf99107fdd024807 
+        --discovery-token-ca-cert-hash sha256:706bd94e2bf10d1030453ceb4091ed44318b333c7f909708bf99107fdd024807
 ```
 在 master 节点上执行命令查看集群中的节点：
 ```
@@ -699,4 +620,4 @@ node2   Ready    <none>                 70s     v1.24.0
 # echo "source <(kubectl completion bash)" >> ~/.bashrc
 # echo "source <(crictl completion bash)" >> ~/.bashrc
 
-```
+``` 
