@@ -1,0 +1,3 @@
+[submodule "kubernetes/update-kube-cert"]
+	path = kubernetes/update-kube-cert
+	url = https://github.com/yuyicai/update-kube-cert
